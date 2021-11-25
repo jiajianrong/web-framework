@@ -88,7 +88,7 @@ export class TestController {
     
     @Route('/say')
     say() {
-        return 'method: test.say(), path ' + this.ctx.path + ', returns ' + this.aService.doSth();
+        return 'test.say(), path ' + this.ctx.path + ', ' + this.aService.doSth();
     }
     
     @Route('/shout')
@@ -161,7 +161,11 @@ function _matchRoute(path, ctrlClazz) {
  * @param method 
  * @returns
  */
- function _reflectClazzMethod( ctx: Koa.ParameterizedContext, clazz: Construct, method: string) {
+function _reflectClazzMethod<T>(
+    ctx: Koa.ParameterizedContext,
+    clazz: Construct<T>,
+    method: string) {
+
     // 一个util方法，修改Object的value并返回新Object
     const _objectMap = (obj, fn) => Object.fromEntries(
         Object.entries(obj).map(([k, v], i) => [k, fn(v, k, i)])
@@ -171,15 +175,20 @@ function _matchRoute(path, ctrlClazz) {
     let controllerInstance = new clazz();
 
     // 获取被Inject()修饰的属性
-    let _injectPropMap = Reflect.getMetadata(INJECT_METADATA, clazz.prototype, INJECT_MAP_ON_PROTO);
+    let _injectPropMap = Reflect.getMetadata(
+        INJECT_METADATA,
+        clazz.prototype,
+        INJECT_MAP_ON_PROTO
+    );
 
     if (_injectPropMap) {
-        let props2Inject = _objectMap(_injectPropMap, (v: Construct, k: string) => {
-            if (k==='ctx') {
-                return {value: ctx, writable: true};
-            }
-            return {value: new v(), writable: true};
+        let props2Inject = _objectMap(_injectPropMap, (v: Construct<T>, k: string) => {
+            return k==='ctx' ? ctx : new v();
         });
+
+        props2Inject = _objectMap(props2Inject, (v: T, k: string) => {
+            return {value: v, writable: true};
+        })
 
         // 为controller的inject属性赋值
         Object.defineProperties(controllerInstance, props2Inject);
