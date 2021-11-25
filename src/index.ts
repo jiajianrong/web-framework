@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import * as Koa from 'koa';
 
+
 export type Construct<T = any> = new (...args: Array<any>) => T;
 export const CONTROLLER_METADATA = 'controller';
 export const ROUTE_METADATA = 'route';
@@ -66,47 +67,6 @@ export function Inject(): PropertyDecorator {
         );
     }
 }
-
-
-// --------------------------------
-// --------------------------------
-export default class AService {
-    name = 'aService';
-    doSth() {
-        return this.name + '_doSth';
-    }
-}
-// --------------------------------
-// --------------------------------
-@Controller('/test')
-export class TestController {
-    @Inject()
-    ctx: Koa.ParameterizedContext;
-
-    @Inject()
-    aService: AService;
-    
-    @Route('/say')
-    say() {
-        return 'test.say(), path ' + this.ctx.path + ', ' + this.aService.doSth();
-    }
-    
-    @Route('/shout')
-    shout() {
-        return 'test.shout()';
-    }
-}
-// --------------------------------
-// --------------------------------
-@Controller('/another')
-export class AnotherController {
-    @Route('/run')
-    run() {
-        return 'another.run()';
-    }
-}
-// --------------------------------
-// ------------------------
 
 
 /**
@@ -226,3 +186,45 @@ app.listen(9999);
 
 
 
+
+// 定义TestController依赖AService
+// 定义AnotherController
+// --------------------------------
+// --------------------------------
+export default class AService {
+    name = 'aService';
+    doSth() {
+        return this.name + '_doSth';
+    }
+}
+// --------------------------------
+// --------------------------------
+@Controller('/test')
+export class TestController {
+    @Inject()
+    ctx: Koa.ParameterizedContext;
+
+    @Inject()
+    aService: AService;
+    
+    @Route('/say')
+    say() {
+        return 'test.say(), path ' + this.ctx.path + ', ' + this.aService.doSth();
+    }
+    
+    @Route('/shout')
+    shout() {
+        return 'test.shout()';
+    }
+}
+// --------------------------------
+// --------------------------------
+@Controller('/another')
+export class AnotherController {
+    @Route('/run')
+    run() {
+        return 'another.run()';
+    }
+}
+// --------------------------------
+// ------------------------
